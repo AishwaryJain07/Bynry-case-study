@@ -1,7 +1,5 @@
 # Bynry-case-study
 https://drive.google.com/file/d/1oXy-mRSd9sR9ihYgdb0n0I0dPcfXT_VO/view?usp=sharing
-
-
 Backend Engineering Intern – Case Study (StockFlow)
 
 Aishwary jain, jainaishwary07@gmail.com
@@ -156,16 +154,27 @@ Can warehouses transfer stock between each other?
 
 
 
+
+
+
 Part 3 – Low Stock Alerts API (Django)
 Assumptions (Say this first – interviewers like this)
 Because requirements are incomplete, I assume:
-
-
 Each Product has a product_type
+
+
 Each product_type defines a low_stock_threshold
+
+
 Inventory is tracked per (product, warehouse)
+
+
 “Recent sales” means sales in the last 30 days
+
+
 A Sale table exists for sales activity
+
+
 Supplier is linked to Product
 
 
@@ -200,6 +209,7 @@ def low_stock_alerts(request, company_id):
     for inventory in inventories:
         product = inventory.product
         warehouse = inventory.warehouse
+
         recent_sales = Sale.objects.filter(
             product=product,
             warehouse=warehouse,
@@ -207,13 +217,18 @@ def low_stock_alerts(request, company_id):
         )
         if not recent_sales.exists():
             continue 
+
         threshold = product.product_type.low_stock_threshold
+
         if inventory.quantity >= threshold:
             continue
+
         total_sold = sum(s.quantity for s in recent_sales)
         days = max((now() - thirty_days_ago).days, 1)
         avg_daily_sale = max(total_sold // days, 1)
+
         days_until_stockout = inventory.quantity // avg_daily_sale
+
         alerts.append({
             "product_id": product.id,
             "product_name": product.name,
@@ -229,6 +244,7 @@ def low_stock_alerts(request, company_id):
                 "contact_email": product.supplier.contact_email
             }
         })
+
     return JsonResponse({
         "alerts": alerts,
         "total_alerts": len(alerts)
@@ -236,7 +252,23 @@ def low_stock_alerts(request, company_id):
 
 Edge cases I handled
 If a product has no recent sales, I skip it because alerts are only meaningful for actively selling products.
+
+
 If a company has multiple warehouses, I iterate over inventory per warehouse so each warehouse is checked independently.
+
+
+If sales quantity is zero or very low, I default the average daily sale to 1 to avoid division-by-zero errors.
+
+
+If the low-stock threshold is not directly on the product, I fetch it from the product type, keeping business rules centralized.
+
+
+For large datasets, I use select_related to reduce database queries and avoid N+1 query problems.
+
+
+If no products qualify for alerts, the API returns an empty alerts list with total_alerts = 0, not an error.
+
+
 If sales quantity is zero or very low, I default the average daily sale to 1 to avoid division-by-zero errors.
 If the low-stock threshold is not directly on the product, I fetch it from the product type, keeping business rules centralized.
 For large datasets, I use select_related to reduce database queries and avoid N+1 query problems.
