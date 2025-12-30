@@ -1,9 +1,10 @@
 # Bynry-case-study
 https://drive.google.com/file/d/1oXy-mRSd9sR9ihYgdb0n0I0dPcfXT_VO/view?usp=sharing
+
 Backend Engineering Intern – Case Study (StockFlow)
 
 Aishwary jain, jainaishwary07@gmail.com
-LinkedIn
+
 Tech Stack Assumed: Django, Django REST Framework, PostgreSQL
 
 
